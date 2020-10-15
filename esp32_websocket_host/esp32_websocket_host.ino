@@ -7,18 +7,16 @@
 // Constants
 const char *ssid = "ESP32-AP";
 const char *password =  "LetMeInPlz";
-const char *msg_toggle_led = "toggleLED";
-const char *msg_get_led = "getLEDState";
+const char *msg_write = "writeMessage";
 const int dns_port = 53;
 const int http_port = 80;
 const int ws_port = 1337;
-const int led_pin = 19;
+const int pin = 19;
 
 // Globals
 AsyncWebServer server(80);
 WebSocketsServer webSocket = WebSocketsServer(1337);
 char msg_buf[10];
-int led_state = 0;
 
 /***********************************************************
  * Functions
@@ -53,42 +51,28 @@ void onWebSocketEvent(uint8_t client_num,
       // Print out raw message
       Serial.printf("[%u] Received text: %s\n", client_num, payload);
 
-      // Toggle LED
-      if ( strcmp((char *)payload, "toggleLED") == 0 ) {
-        led_state = led_state ? 0 : 1;
-        Serial.printf("Toggling LED to %u\n", led_state);
-        switch (led_state)
-        {
-        case 0:
-            M5.dis.drawpix(0, 0xf00000);
-            break;
-        case 1:
-            M5.dis.drawpix(0, 0x00f000);
-            break;
-        }
-        delay(50);
+      // Write message
+      if ( strcmp((char *)payload, "writeMessage") == 0 ) {
+        Serial.printf("Writing message on computer");
+        digitalWrite(pin,LOW);
         M5.update();
-
-      // Report the state of the LED
-      } else if ( strcmp((char *)payload, "getLEDState") == 0 ) {
-        sprintf(msg_buf, "%d", led_state);
-        Serial.printf("Sending to [%u]: %s\n", client_num, msg_buf);
-        webSocket.sendTXT(client_num, msg_buf);
 
       // Message not recognized
       } else {
         Serial.println("[%u] Message not recognized");
+        digitalWrite(pin,HIGH);
       }
       break;
 
     // For everything else: do nothing
-    case WStype_BIN:
+    /* case WStype_BIN:
     case WStype_ERROR:
     case WStype_FRAGMENT_TEXT_START:
     case WStype_FRAGMENT_BIN_START:
     case WStype_FRAGMENT:
-    case WStype_FRAGMENT_FIN:
+    case WStype_FRAGMENT_FIN:*/
     default:
+      digitalWrite(pin, HIGH);
       break;
   }
 }
@@ -122,12 +106,10 @@ void onPageNotFound(AsyncWebServerRequest *request) {
  */
 
 void setup() {
-  // Init LED and turn off
-  //pinMode(led_pin, OUTPUT);
-  //digitalWrite(led_pin, LOW);
-  M5.begin(true,false,true);
-  delay(50);
-  M5.dis.drawpix(0, 0xf00000);
+  // Init PIN and turn off
+  M5.begin();
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, HIGH);
 
   // Start Serial port
   Serial.begin(115200);

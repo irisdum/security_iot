@@ -1,126 +1,116 @@
-
 <!DOCTYPE html>
-<meta charset="utf-8" />
-<title>WebSocket Test</title>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>WebSocket Test</title>
+  </head>
+  <body>
+    <script language="javascript" type="text/javascript">
+      var url = "ws://192.168.4.1:1337/";
+      var output;
+      var button;
+      var canvas;
+      var context;
 
-<script language="javascript" type="text/javascript">
+      // This is called when the page finishes loading
+      function init() {
+        // Assign page elements to variables
+        button = document.getElementById("writeButton");
+        output = document.getElementById("output");
+        text = document.getElementById("led");
 
-var url = "ws://192.168.4.1:1337/";
-var output;
-var button;
-var canvas;
-var context;
+        // Display message
+        context = text.getContext("2d");
 
-// This is called when the page finishes loading
-function init() {
+        context.font = "20px Georgia";
 
-    // Assign page elements to variables
-    button = document.getElementById("toggleButton");
-    output = document.getElementById("output");
-    canvas = document.getElementById("led");
-    
-    // Draw circle in canvas
-    context = canvas.getContext("2d");
-    context.arc(25, 25, 15, 0, Math.PI * 2, false);
-    context.lineWidth = 3;
-    context.strokeStyle = "black";
-    context.stroke();
-    context.fillStyle = "black";
-    context.fill();
-    
-    // Connect to WebSocket server
-    wsConnect(url);
-}
+        // Connect to WebSocket server
+        wsConnect(url);
+      }
 
-// Call this to connect to the WebSocket server
-function wsConnect(url) {
-    
-    // Connect to WebSocket server
-    websocket = new WebSocket(url);
-    
-    // Assign callbacks
-    websocket.onopen = function(evt) { onOpen(evt) };
-    websocket.onclose = function(evt) { onClose(evt) };
-    websocket.onmessage = function(evt) { onMessage(evt) };
-    websocket.onerror = function(evt) { onError(evt) };
-}
+      // Call this to connect to the WebSocket server
+      function wsConnect(url) {
+        // Connect to WebSocket server
+        websocket = new WebSocket(url);
 
-// Called when a WebSocket connection is established with the server
-function onOpen(evt) {
+        // Assign callbacks
+        websocket.onopen = function (evt) {
+          onOpen(evt);
+        };
+        websocket.onclose = function (evt) {
+          onClose(evt);
+        };
+        websocket.onmessage = function (evt) {
+          onMessage(evt);
+        };
+        websocket.onerror = function (evt) {
+          onError(evt);
+        };
+      }
 
-    // Log connection state
-    console.log("Connected");
-    
-    // Enable button
-    button.disabled = false;
-    
-    // Get the current state of the LED
-    doSend("getLEDState");
-}
+      // Called when a WebSocket connection is established with the server
+      function onOpen(evt) {
+        // Log connection state
+        console.log("Connected");
 
-// Called when the WebSocket connection is closed
-function onClose(evt) {
+        // Enable button
+        button.disabled = false;
+      }
 
-    // Log disconnection state
-    console.log("Disconnected");
-    
-    // Disable button
-    button.disabled = true;
-    
-    // Try to reconnect after a few seconds
-    setTimeout(function() { wsConnect(url) }, 2000);
-}
+      // Called when the WebSocket connection is closed
+      function onClose(evt) {
+        // Log disconnection state
+        console.log("Disconnected");
 
-// Called when a message is received from the server
-function onMessage(evt) {
+        // Disable button
+        button.disabled = true;
 
-    // Print out our received message
-    console.log("Received: " + evt.data);
-    
-    // Update circle graphic with LED state
-    switch(evt.data) {
-        case "0":
-            console.log("LED is off");
-            context.fillStyle = "black";
-            context.fill();
-            break;
-        case "1":
-            console.log("LED is on");
-            context.fillStyle = "red";
-            context.fill();
-            break;
-        default:
-            break;
-    }
-}
+        // Try to reconnect after a few seconds
+        setTimeout(function () {
+          wsConnect(url);
+        }, 2000);
+      }
 
-// Called when a WebSocket error occurs
-function onError(evt) {
-    console.log("ERROR: " + evt.data);
-}
+      // Called when a message is received from the server
+      function onMessage(evt) {
+        // Print out our received message
+        console.log("Received: " + evt.data);
 
-// Sends a message to the server (and prints it to the console)
-function doSend(message) {
-    console.log("Sending: " + message);
-    websocket.send(message);
-}
+        // Display success message
+        context.fillText("Success ", 10, 50);
+      }
 
-// Called whenever the HTML button is pressed
-function onPress() {
-    doSend("toggleLED");
-    doSend("getLEDState");
-}
+      // Called when a WebSocket error occurs
+      function onError(evt) {
+        console.log("ERROR: " + evt.data);
+      }
 
-// Call the init function as soon as the page loads
-window.addEventListener("load", init, false);
+      // Sends a message to the server (and prints it to the console)
+      function doSend(message) {
+        console.log("Sending: " + message);
+        websocket.send(message);
+      }
 
-</script>
+      // Called whenever the HTML button is pressed
+      function onPress() {
+        doSend("writeMessage");
+      }
 
-<h2>LED Control</h2>
+      // Call the init function as soon as the page loads
+      window.addEventListener("load", init, false);
+    </script>
 
-<table>
-    <tr>
-        <td><button id="toggleButton" onclick="onPress()" disabled>Toggle LED</button></td>
+    <h2>Teensy Control</h2>
+
+    <table>
+      <tr>
+        <td>
+          <button id="writeButton" onclick="onPress()">
+            Write Hello World on victim computer
+          </button>
+        </td>
         <td><canvas id="led" width="50" height="50"></canvas></td>
-    </tr>
-</table>
+      </tr>
+    </table>
+  </body>
+</html>
